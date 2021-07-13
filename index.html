@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVL Tree by Saugi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>BINARY SEARCH TREE + AVL VISUALIZER</h1>
+            <div class="menu">
+                <div class="menu-buttons">
+                    <button class='action-button' id="insert">Insert</button>
+                    <button class='action-button' id="remove">Remove</button>
+                    <button class='action-button' id="avl">AVL Balance</button>
+                </div>
+
+                <form action="" style="display: none" id="form">
+                    <div class="form-group">
+                        <label for="input" id="input-label">Insert: </label>
+                        <input type="text" placeholder="50" id="input">
+                        <button id="execute">Execute</button>
+                    </div>
+                </form>
+            </div>
+        </header>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+            
+            <g id="lines">
+
+            </g>
+            <g id="nodes">
+                
+            </g>
+        </svg>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.0/gsap.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

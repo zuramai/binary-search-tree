@@ -1,0 +1,24 @@
+{
+  "name": "avl-tree",
+  "version": "1.0.0",
+  "description": "AVL Tree with HTML CSS and JS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zuramai/avl-tree.git"
+  },
+  "keywords": [
+    "avltree",
+    "bst",
+    "avl"
+  ],
+  "author": "zuramai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zuramai/avl-tree/issues"
+  },
+  "homepage": "https://github.com/zuramai/avl-tree#readme"
+}
