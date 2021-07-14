@@ -114,23 +114,58 @@ const getHeight = (id) => {
 }
 
 const getLine = (from,to) => {
-    console.log(`get line from ${from} to ${to}`)
+    console.log("checking line from",from,"to",to)
     let line =  lines.find(e => e.getAttribute('data-from') == from && e.getAttribute('data-to') == to)
-    console.log(lines)
-    console.log(`line exist: ${line}`)
     return line
+}
+
+const adjustCirclePosition = (node) => {
+    gsap.to(node.circleEl, { attr: { cx: node.cx, cy: node.cy }, delay: 2, duration: 1, ease: 'power4.out' })
+    gsap.to(node.textEl, { attr: { x: node.cx, y: node.cy }, delay: 2, duration: 1, ease: 'power4.out' })
+}
+
+const adjustLinePosition = (el, pos) => {
+    gsap.to(el, {attr: { x1: pos.x1, y1: pos.y1, x2: pos.x2, y2: pos.y2 }, duration: 1, delay: 2, ease: 'power4.out'})
 }
 
 const leftRotate = (id) => {
     let node = nodes[findNodeIndex(id)]
     let nodeRight = nodes[findNodeIndex(node.right)]
     let nodeRightLeft = nodes[findNodeIndex(nodeRight.left)]
+    let nodeRightRight = nodes[findNodeIndex(nodeRight.right)]
+    let nodeRightLine = getLine(node.id, node.right)
 
     nodeRight.left = node.id
-    node.right = nodeRightLeft.id
+    nodeRight.parent = node.parent
+    node.parent = nodeRight.id
 
+    node.right = nodeRightLeft ? nodeRightLeft.id : null
+
+    // set new height 
     nodeRight.height = max(getHeight(nodeRight.left), getHeight(nodeRight.right)) + 1
     node.height = max(getHeight(node.left), getHeight(node.right)) + 1
+
+    nodeRightLine.setAttribute('data-from', nodeRight.id, node.id)
+    
+    let nodeRightRightLine = getLine(nodeRight.id, nodeRight.right)
+
+    // change noderightright position to the parent
+    if(nodeRightRight) Object.assign(nodeRightRight, { cx: nodeRight.cx, cy: nodeRight.cy })
+    Object.assign(nodeRight, { cx: node.cx, cy: node.cy })
+    Object.assign(node, {
+        cx: nodeRight.cx - (nodeRight.parent ? dxNext : dx), 
+        cy: nodeRight.cy + (nodeRight.parent ? dyNext : dy) 
+    })
+
+    adjustLinePosition(nodeRightRightLine, getLineCoordinate(nodeRightRight))
+    adjustCirclePosition(nodeRight)
+    
+    // animate nodeRightRight to its former nodeRIght position
+    adjustCirclePosition(nodeRightRight)
+
+    // animate nodeRightRight to its former nodeRIght position
+    adjustLinePosition(nodeRightLine, getLineCoordinate(node))
+    adjustCirclePosition(node)
 
     return nodeRight.id
 }
@@ -153,35 +188,36 @@ const rightRotate = (id) => {
 
     nodeLeftLine.setAttribute('data-from', nodeLeft.id, node.id)
 
-    let nodeLeftLeftLine = getLine(nodeLeft.id, nodeLeft.left);
+
     // change nodeleftleft position to the parent
-    nodeLeftLeft.cx = nodeLeft.cx
-    nodeLeftLeft.cy = nodeLeft.cy
+    if(nodeLeftLeft) Object.assign(nodeLeftLeft, { cx: nodeLeft.cx, cy: nodeLeft.cy })
 
     // change nodeleft position to the parent
-    nodeLeft.cx = node.cx
-    nodeLeft.cy = node.cy
-
+    Object.assign(nodeLeft, { cx: node.cx, cy: node.cy })
+    
     // change node position
-    node.cx = nodeLeft.cx + (nodeLeft.parent ? dxNext : dx)
-    node.cy = nodeLeft.cy + (nodeLeft.parent ? dyNext : dy)
+    Object.assign(node, { 
+        cx: nodeLeft.cx + (nodeLeft.parent ? dxNext : dx), 
+        cy: nodeLeft.cy + (nodeLeft.parent ? dyNext : dy) 
+    })
 
-    let { x1, y1, x2, y2 } = getLineCoordinate(nodeLeftLeft)
 
-    // animate nodeLeft to its parent
-    gsap.to(nodeLeftLeftLine, {attr: { x1, y1, x2, y2 }, duration: 1, delay: 2, ease: 'power4.out'})
-    gsap.to(nodeLeft.circleEl, { attr: { cx: nodeLeft.cx, cy: nodeLeft.cy }, delay: 2, duration: 1, ease: 'power4.out' })
-    gsap.to(nodeLeft.textEl, { attr: { x: nodeLeft.cx, y: nodeLeft.cy }, delay: 2, duration: 1, ease: 'power4.out' })
+    // adjust and animate nodeLeftleft to its parent
+    if (nodeLeftLeft) {
+        let nodeLeftLeftLine = getLine(nodeLeft.id, nodeLeft.left);
+        adjustLinePosition(nodeLeftLeftLine, getLineCoordinate(nodeLeftLeft))
+        adjustCirclePosition(nodeLeftLeft)
+    }
+
+
+
+    adjustCirclePosition(nodeLeft)
     
     // animate nodeLeftLeft to its former nodeLeft position
-    gsap.to(nodeLeftLeft.circleEl, { attr: { cx: nodeLeftLeft.cx, cy: nodeLeftLeft.cy }, delay: 2, duration: 1, ease: 'power4.out' })
-    gsap.to(nodeLeftLeft.textEl, { attr: { x: nodeLeftLeft.cx, y: nodeLeftLeft.cy }, delay: 2, duration: 1, ease: 'power4.out' })
 
     // animate nodeLeftLeft to its former nodeLeft position
-    let newline = getLineCoordinate(node)
-    gsap.to(nodeLeftLine, {attr: { x1: newline.x1, y1: newline.y1, x2: newline.x2, y2: newline.y2 }, duration: 1, delay: 2, ease: 'power4.out'})
-    gsap.to(node.circleEl, { attr: { cx: node.cx, cy: node.cy }, delay: 2, duration: 1, ease: 'power4.out' })
-    gsap.to(node.textEl, { attr: { x: node.cx, y: node.cy }, delay: 2, duration: 1, ease: 'power4.out' })
+    adjustLinePosition(nodeLeftLine, getLineCoordinate(node))
+    adjustCirclePosition(node)
 
     return nodeLeft.id
 }
@@ -195,14 +231,15 @@ const highlightElement = (node) => {
 }
 
 const balance = (id) => {
-    console.log("balancing "+id)
     let node = nodes[findNodeIndex(id)]
     if(!node) return node
+    console.log("balancing ",node.value)
 
     node.height = max(getHeight(node.left), getHeight(node.right))+1
-    console.log(`node ${id} height: ${node.height}, ${node.left}-${node.right}`)
-
     let bf = balanceFactor(node)
+
+    console.log(`node ${node.value} height: ${node.height}, bfactor ${bf}`)
+
 
     if(bf > 1 && balanceFactor(node.left) >= 0) {
         console.log("LL balancefactor: "+bf )
@@ -309,12 +346,12 @@ const createNode = (currentId, value, parentId) => {
         return create.id
     }
 
+    console.log('recursion ', currentNode.value)
     if(value > currentNode.value) {
         currentNode.right = createNode(currentNode.right, value, currentNode.id)
     } else if (value < currentNode.value) {
         currentNode.left = createNode(currentNode.left, value, currentNode.id)
     }
-
     return balance(currentId)
 }
 
